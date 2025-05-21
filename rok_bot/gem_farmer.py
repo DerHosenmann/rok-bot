@@ -9,6 +9,7 @@ GEM_TEMPLATE_NIGHT = r'images/gem_deposit_template_night.png' # Adjusted path
 GATHER_TEMPLATE = r'images/gather_template.png' # Adjusted path
 NEW_TROOP_TEMPLATE = r'images/new_troop_template.png' # Adjusted path
 MARCH_TEMPLATE = r'images/march_template.png' # Adjusted path
+ORANGE_MARCH_BUTTON_TEMPLATE = r'images/orange_march_button.png' # New
 
 CONFIDENCE_GEM = 0.8
 CONFIDENCE_GATHER = 0.80
@@ -17,6 +18,7 @@ CONFIDENCE_GENERAL = 0.85
 CLICK_DELAY_SHORT = 0.7
 CLICK_DELAY_MEDIUM = 2.0
 CLICK_DELAY_LONG = 3.0
+ORANGE_MARCH_WAIT_SECONDS = 30 * 60 # 30 minutes # New
 
 FARMING_DURATION_SECONDS = 60 * 5
 # SEARCH_INTERVAL_SECONDS (not directly used in main loop with continuous nav/scan)
@@ -32,16 +34,24 @@ DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS = True
 SCREENSHOT_DIR = "debug_screenshots" # Will be relative to where script is run
 USE_ALT_CLICK_METHOD = False
 
-# --- Navigation Configuration (Expanding Square Spiral) ---
-CARDINAL_DIRECTIONS = ['right', 'down', 'left', 'up']
+# --- Systematic Search Configuration ---
+SEARCH_PATTERN_TYPE = "snake" # Defines the active search pattern
 
-SCROLL_UNITS_PER_LEG_INITIAL = 5
-SCROLL_UNITS_INCREMENT_PER_LEVEL = 5
+# Configuration for "snake" pattern
+SNAKE_HORIZONTAL_SCROLL_KEY_RIGHT = 'right' # Key for scrolling right
+SNAKE_HORIZONTAL_SCROLL_KEY_LEFT = 'left'   # Key for scrolling left
+SNAKE_VERTICAL_SCROLL_KEY = 'down'          # Key for vertical shift
 
-NAVIGATION_SCROLL_DURATION = 0.3
-NAVIGATION_STEPS_BEFORE_SCAN = 1 # Scan after every scroll
-NAVIGATION_POST_SCROLL_PAUSE = 0.3
-SCAN_FOR_GEMS_INTERVAL = 0.5 # Pause after a scan if no gem found
+SNAKE_HORIZONTAL_PASS_UNITS = 100 # Arbitrary units for a full horizontal pass (e.g., screen widths, or time units) - CONCEPTUAL, NOT DIRECTLY USED BY DURATION-BASED SCROLLING
+SNAKE_VERTICAL_SHIFT_UNITS = 20   # Arbitrary units for vertical shift after a pass (e.g., screen heights, or time units) - CONCEPTUAL, NOT DIRECTLY USED BY DURATION-BASED SCROLLING
+SNAKE_SCANS_PER_HORIZONTAL_PASS = 5 # Number of times to scan for gems during one horizontal leg
+
+# Duration settings for scroll actions in snake pattern
+# This implies using pyautogui.keyDown, time.sleep, pyautogui.keyUp for each scroll segment.
+SNAKE_SCROLL_SEGMENT_DURATION = 2.0 # Seconds to scroll for each segment of a horizontal pass
+
+# General pause after a scan if no gem is found during systematic search
+SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 
 # Create screenshot directory
 # Adjusted to be relative to the script's location
@@ -195,6 +205,23 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
                 print("Failed to find or action Gather Button after all retries.")
                 return False
 
+        # Check for Orange March Button AFTER successful Gather
+        print("Checking for orange march button...")
+        orange_march_location = find_template(
+            ORANGE_MARCH_BUTTON_TEMPLATE,
+            CONFIDENCE_GENERAL,
+            "Orange March Button",
+            use_grayscale=True,
+            # Not taking a screenshot on fail for this one by default, can be added if needed
+            # debug_screenshot_on_fail=DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS,
+            # screenshot_filename_prefix="fail_orange_march_"
+        )
+        if orange_march_location:
+            print(f"Orange march button found at {orange_march_location}. Waiting for {ORANGE_MARCH_WAIT_SECONDS // 60} minutes.")
+            time.sleep(ORANGE_MARCH_WAIT_SECONDS)
+            print("Finished waiting after orange march button detection.")
+            return "orange_march_detected" # Signal to main loop
+
         new_troop_action_result = find_and_click(
             NEW_TROOP_TEMPLATE, CONFIDENCE_GENERAL, "New Troop Button",
             click_delay_after=CLICK_DELAY_MEDIUM, optional=True, use_grayscale=True
@@ -238,10 +265,6 @@ def main_bot_loop():
     print("Rise of Kingdoms Gem Farming Bot with EXPANDING SPIRAL Navigation (Day/Night Scan) - Starting...")
     print(f"Farming duration per cycle: {FARMING_DURATION_SECONDS} seconds.")
     print(f"Max retries for steps after initial click: {MAX_SUBSEQUENT_STEP_RETRIES}")
-    print(f"Initial leg scroll units: {SCROLL_UNITS_PER_LEG_INITIAL}")
-    print(f"Leg increment per level: {SCROLL_UNITS_INCREMENT_PER_LEVEL}")
-    print(f"Scroll duration per action: {NAVIGATION_SCROLL_DURATION}s")
-    print(f"Scroll actions before scan: {NAVIGATION_STEPS_BEFORE_SCAN} (should be 1 for scan after each scroll)")
     print("IMPORTANT: Ensure the Rise of Kingdoms game window is ACTIVE and in the FOREGROUND.")
     print("           The bot will start actions after the initial countdown.")
     print("           To STOP the bot, move your mouse to a screen corner quickly (FAILSAFE).")
@@ -256,69 +279,104 @@ def main_bot_loop():
 
     pyautogui.FAILSAFE = True
 
-    direction_index = 0
-    current_leg_target_scrolls = SCROLL_UNITS_PER_LEG_INITIAL
-    scrolls_taken_in_current_leg = 0
-    legs_completed_at_current_length = 0
-    nav_actions_taken_since_scan = 0
+    # nav_actions_taken_since_scan = 0 # Will be replaced by new search logic's scan counter/timer
 
     for i in range(5, 0, -1):
         print(f"\rStarting in {i} seconds... Switch to game, ensure it's ACTIVE & ADMIN rights!", end="")
         time.sleep(1)
-    print("\nBot active! Expanding spiral navigation will begin.")
+    # Updated print statements for snake configuration
+    print("\nBot active! Systematic 'snake' navigation will begin.")
+    print(f"Search pattern: {SEARCH_PATTERN_TYPE}")
+    print(f"Horizontal pass scroll units (config name: SNAKE_HORIZONTAL_PASS_UNITS): {SNAKE_HORIZONTAL_PASS_UNITS}")
+    print(f"Vertical shift units (config name: SNAKE_VERTICAL_SHIFT_UNITS): {SNAKE_VERTICAL_SHIFT_UNITS}")
+    print(f"Scans per horizontal pass: {SNAKE_SCANS_PER_HORIZONTAL_PASS}")
+    print(f"Scroll segment duration: {SNAKE_SCROLL_SEGMENT_DURATION}s")
+    print(f"Pause if no gem found: {SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM}s")
+    
+    # Define local pause and vertical shift scroll duration
+    snake_post_scroll_pause = 0.3 
+    print(f"Post-scroll pause (local setting): {snake_post_scroll_pause}s")
+    snake_vertical_shift_scroll_duration = SNAKE_SCROLL_SEGMENT_DURATION 
+    print(f"Vertical shift scroll duration (local setting, based on segment duration): {snake_vertical_shift_scroll_duration}s")
+
+    # Snake search state
+    current_horizontal_direction_key = SNAKE_HORIZONTAL_SCROLL_KEY_RIGHT
+    passes_completed = 0
 
     try:
         while True:
-            if nav_actions_taken_since_scan >= NAVIGATION_STEPS_BEFORE_SCAN:
-                print("\nScanning for gem deposits (Day or Night)...")
+            # This is the main bot operating loop, inside try:
+            print(f"\n--- Starting new horizontal pass (Pass #{passes_completed + 1}) ---")
+            print(f"Current horizontal direction: {current_horizontal_direction_key}")
+
+            # This flag helps manage scrolling behavior after a farming attempt within a pass
+            action_taken_in_current_segment = False 
+
+            for segment_num in range(SNAKE_SCANS_PER_HORIZONTAL_PASS):
+                print(f"\nSegment {segment_num + 1}/{SNAKE_SCANS_PER_HORIZONTAL_PASS} of horizontal pass.")
+
+                # 1. Scroll for one segment, only if no action (like farming) was just taken
+                if not action_taken_in_current_segment:
+                    print(f"Scrolling {current_horizontal_direction_key} for {SNAKE_SCROLL_SEGMENT_DURATION}s...")
+                    pyautogui.keyDown(current_horizontal_direction_key)
+                    time.sleep(SNAKE_SCROLL_SEGMENT_DURATION)
+                    pyautogui.keyUp(current_horizontal_direction_key)
+                    print(f"Scroll segment complete.")
+                    time.sleep(snake_post_scroll_pause) 
+                else:
+                    # Reset flag if an action was taken in the previous iteration of this loop
+                    action_taken_in_current_segment = False 
+
+                # 2. Scan for gems
+                print("Scanning for gem deposits (Day or Night)...")
                 initial_gem_location_box = find_any_gem_deposit(CONFIDENCE_GEM, use_grayscale=True)
-                nav_actions_taken_since_scan = 0
 
                 if initial_gem_location_box:
                     print(f"GEM SPOTTED at {initial_gem_location_box}! Pausing navigation to attempt farming.")
-                    farmed_successfully = perform_full_gem_farming_cycle(initial_gem_location_box)
+                    farming_outcome = perform_full_gem_farming_cycle(initial_gem_location_box)
+                    action_taken_in_current_segment = True # Mark that an action occurred
 
-                    if farmed_successfully:
-                        print(f"Farming successful. Waiting for {FARMING_DURATION_SECONDS} seconds...")
-                        for i in range(FARMING_DURATION_SECONDS, 0, -1): # Corrected loop variable
-                            print(f"\rTime remaining: {i:03d}s ", end="")
+                    if farming_outcome is True:
+                        print(f"Farming successful. Standard {FARMING_DURATION_SECONDS // 60} min wait starts.")
+                        for i_waitCounter in range(FARMING_DURATION_SECONDS, 0, -1):
+                            print(f"\rTime remaining: {i_waitCounter:03d}s ", end="")
                             time.sleep(1)
-                        print("\nFarming duration complete. Resuming navigation.")
-                    else:
-                        print("Farming attempt failed for the spotted gem. Resuming navigation.")
+                        print("\nFarming duration complete. Resuming search.")
+                    elif farming_outcome == "orange_march_detected":
+                        print("Orange march button was detected and handled (30-min wait occurred). Resuming search.")
+                    else: # farming_outcome is False
+                        print("Farming attempt failed for the spotted gem. Resuming search.")
                     
-                    time.sleep(2.0) # Pause before resuming navigation regardless of farming outcome
-                else:
-                    print("No gem deposit found in current view.")
-                    time.sleep(SCAN_FOR_GEMS_INTERVAL) # Pause briefly if no gem found
+                    print("Short pause before resuming map interaction...")
+                    time.sleep(2.0) # General pause after any farming attempt
+                    
+                    print("Continuing with the current search pass after farming attempt...")
 
-            # Navigation logic continues
-            if scrolls_taken_in_current_leg >= current_leg_target_scrolls:
-                print(f"--- Leg complete (Target: {current_leg_target_scrolls} scrolls in {CARDINAL_DIRECTIONS[direction_index]}) ---")
-                direction_index = (direction_index + 1) % len(CARDINAL_DIRECTIONS)
-                scrolls_taken_in_current_leg = 0
-                legs_completed_at_current_length += 1
+                else: # No gem found in this scan
+                    print(f"No gem deposit found in current view. Pausing for {SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM}s.")
+                    time.sleep(SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM)
+                    action_taken_in_current_segment = False # No action taken if no gem found
+                
+            # --- Horizontal pass completed ---
+            print(f"--- Horizontal pass #{passes_completed + 1} completed ---")
 
-                if legs_completed_at_current_length >= 2: # After two legs (e.g., right, down), increase length
-                    current_leg_target_scrolls += SCROLL_UNITS_INCREMENT_PER_LEVEL
-                    legs_completed_at_current_length = 0
-                    print(f"--- Increasing leg length. New target: {current_leg_target_scrolls} scrolls per leg. ---")
+            # 3. Perform vertical shift
+            print(f"Performing vertical shift: Scrolling {SNAKE_VERTICAL_SCROLL_KEY} for {snake_vertical_shift_scroll_duration}s.")
+            pyautogui.keyDown(SNAKE_VERTICAL_SCROLL_KEY)
+            time.sleep(snake_vertical_shift_scroll_duration)
+            pyautogui.keyUp(SNAKE_VERTICAL_SCROLL_KEY)
+            print("Vertical shift complete.")
+            time.sleep(snake_post_scroll_pause)
 
-            current_key = CARDINAL_DIRECTIONS[direction_index]
-            # More descriptive log for navigation action
-            print(f"\nNavigating (Leg {scrolls_taken_in_current_leg + 1}/{current_leg_target_scrolls} of current length {current_leg_target_scrolls}, Direction: {current_key}):")
+            # 4. Reverse horizontal direction
+            if current_horizontal_direction_key == SNAKE_HORIZONTAL_SCROLL_KEY_RIGHT:
+                current_horizontal_direction_key = SNAKE_HORIZONTAL_SCROLL_KEY_LEFT
+            else:
+                current_horizontal_direction_key = SNAKE_HORIZONTAL_SCROLL_KEY_RIGHT
             
-            if NAVIGATION_SCROLL_DURATION > 0: # Use keyDown/keyUp for a sustained press
-                pyautogui.keyDown(current_key)
-                time.sleep(NAVIGATION_SCROLL_DURATION)
-                pyautogui.keyUp(current_key)
-            else: # Use press for a quick tap if duration is zero
-                pyautogui.press(current_key)
-            print(f"Action: Scrolled {current_key} (simulated duration: {NAVIGATION_SCROLL_DURATION if NAVIGATION_SCROLL_DURATION > 0 else 'instant press'}).")
-
-            scrolls_taken_in_current_leg += 1
-            nav_actions_taken_since_scan += 1
-            time.sleep(NAVIGATION_POST_SCROLL_PAUSE) # Pause after each scroll
+            passes_completed += 1
+            action_taken_in_current_segment = False # Reset for the new pass
+            print(f"Ready for next pass. New direction: {current_horizontal_direction_key}")
 
     except pyautogui.FailSafeException:
         print("\nFAILSAFE TRIGGERED (mouse moved to screen corner). Exiting bot.")
