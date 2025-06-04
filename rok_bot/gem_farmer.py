@@ -177,8 +177,9 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
             # Use screenshot_full_path for saving screenshots
             filename = os.path.join(screenshot_full_path, f"after_initial_click_on_located_gem_{timestamp}.png")
             pyautogui.screenshot(filename)
-            print(f"DEBUG: Screenshot after initial click on located gem saved to {filename}. EXAMINE THIS.")
-            print(f"       Verify if the game menu opened and if the 'Gather Button' is visible.")
+            print("DEBUG: Screenshot after initial click on located gem saved to" 
+                  f" {filename}. EXAMINE THIS.")
+            print("       Verify if the game menu opened and if the 'Gather Button' is visible.")
         except Exception as e:
             print(f"DEBUG: Failed to take screenshot: {e}")
     
@@ -232,7 +233,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         # - None if mandatory and not found, or if click failed
         if new_troop_action_result is None: # This means it was mandatory (not optional) OR click failed
              if attempt < MAX_SUBSEQUENT_STEP_RETRIES - 1:
-                print(f"New Troop Button (optional but failed interaction or mandatory and failed). Re-clicking initial gem...")
+                print("New Troop Button (optional but failed interaction or mandatory and failed). Re-clicking initial gem...")
                 click_at_location(initial_gem_location_box, "Re-Click Initial Gem (due to New Troop interaction fail)", move_duration=0.3, pre_click_pause=0.1)
                 time.sleep(RETRY_PAUSE_SECONDS)
                 continue
@@ -246,7 +247,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         )
         if not march_button_location_result or march_button_location_result is True:
             if attempt < MAX_SUBSEQUENT_STEP_RETRIES - 1:
-                print(f"March Button not found or click failed. Re-clicking initial gem...")
+                print("March Button not found or click failed. Re-clicking initial gem...")
                 click_at_location(initial_gem_location_box, "Re-Click Initial Gem (due to March fail)", move_duration=0.3, pre_click_pause=0.1)
                 time.sleep(RETRY_PAUSE_SECONDS)
                 continue
@@ -321,7 +322,7 @@ def main_bot_loop():
                     pyautogui.keyDown(current_horizontal_direction_key)
                     time.sleep(SNAKE_SCROLL_SEGMENT_DURATION)
                     pyautogui.keyUp(current_horizontal_direction_key)
-                    print(f"Scroll segment complete.")
+                    print("Scroll segment complete.")
                     time.sleep(snake_post_scroll_pause) 
                 else:
                     # Reset flag if an action was taken in the previous iteration of this loop
