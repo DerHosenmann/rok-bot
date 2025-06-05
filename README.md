@@ -12,7 +12,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 *   Debug options, including taking screenshots on certain events (e.g., after initial click, if gather fails).
 *   Simple GUI to start and stop the bot.
 *   Automatically resizes the game window to **1280x720** when the bot starts.
-*   Can zoom out after sending a march, or when skipping an unavailable deposit, by a configurable number of mouse wheel clicks.
+*   Can zoom out after sending a march (in two steps with a short pause) or when skipping an unavailable deposit. Each step uses a configurable number of mouse wheel clicks.
 
 ## Setup
 
@@ -57,7 +57,7 @@ Alternatively, launch the GUI:
     ```
     The GUI allows you to adjust the confidence level for detecting gem icons,
     tweak how the bot moves across the map, set how many mouse wheel clicks
-    the bot uses when zooming out, and adjust how long the bot waits after
+    the bot uses for each zoom-out step, and adjust how long the bot waits after
     dispatching troops. These values are passed to the bot as command
     line arguments when you click **Start Bot**.
 3.  **Initial Countdown:** The script has a 5-second countdown before it starts interacting. Use this time to switch to the game window and ensure it's in focus.
@@ -74,7 +74,8 @@ The main configuration variables are located at the top of the `rok_bot/gem_farm
 *   `ORANGE_MARCH_BUTTON_TEMPLATE`: Path to the image for the special orange march button that might indicate a full farming queue (default: `images/orange_march_button.png`).
 *   `ORANGE_MARCH_WAIT_SECONDS`: Duration (in seconds) to wait if the orange march button is detected (default: `1800`, i.e., 30 minutes).
 *   `DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK`, `DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS`: Set to `True` or `False` to enable/disable debug screenshots. Screenshots are saved in the `rok_bot/debug_screenshots` directory.
-*   `ZOOM_OUT_CLICKS_AFTER_MARCH`: Number of mouse wheel clicks used to zoom out after sending a march.
+*   `ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST` and `ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND`: Mouse wheel clicks used for the first and second zoom-out steps after sending a march.
+*   `ZOOM_OUT_DELAY_BETWEEN`: Delay in seconds between the two zoom-out steps (default: `0.1`).
 
 ### Systematic Search (Snake Pattern) Configuration:
 The bot now uses a 'snake' or boustrophedon pattern for map exploration.

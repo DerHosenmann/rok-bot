@@ -86,8 +86,12 @@ SNAKE_SCROLL_SEGMENT_DURATION = 2.0 # Seconds to scroll for each segment of a ho
 SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 
 # Zoom configuration
-# Number of mouse wheel clicks to perform after successfully dispatching a march
-ZOOM_OUT_CLICKS_AFTER_MARCH = 0
+# Two-step zoom out after dispatching a march
+# These represent the number of mouse wheel clicks for each step.
+ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = 0
+ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = 0
+# Delay between the two zoom actions (seconds)
+ZOOM_OUT_DELAY_BETWEEN = 0.1
 
 # Create screenshot directory
 # Adjusted to be relative to the script's location
@@ -146,10 +150,16 @@ def parse_args():
         help="Pause after a scan if no gem is found",
     )
     parser.add_argument(
-        "--zoom-out-clicks",
+        "--zoom-out-clicks-first",
         type=int,
-        default=ZOOM_OUT_CLICKS_AFTER_MARCH,
-        help="Mouse wheel clicks to zoom out after dispatching a march",
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST,
+        help="Mouse wheel clicks for the first zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-out-clicks-second",
+        type=int,
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND,
+        help="Mouse wheel clicks for the second zoom-out after dispatching a march",
     )
     parser.add_argument(
         "--farming-duration",
@@ -373,11 +383,18 @@ def record_dispatched(location_box):
 
 
 def zoom_out_after_dispatch():
-    """Zoom out the map slightly after a successful dispatch."""
-    if ZOOM_OUT_CLICKS_AFTER_MARCH > 0:
-        print(f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH} wheel clicks after dispatch...")
-        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH)
-        time.sleep(0.2)
+    """Zoom out the map in two steps after a successful dispatch."""
+    if ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST > 0:
+        print(
+            f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST} wheel clicks (step 1) after dispatch..."
+        )
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST)
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND > 0:
+        print(
+            f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND} wheel clicks (step 2) after dispatch..."
+        )
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND)
 
 
 def is_deposit_gathered_on_map(location_box, margin=30):
@@ -676,7 +693,8 @@ if __name__ == "__main__":
     SNAKE_SCROLL_SEGMENT_DURATION = args.scroll_duration
     SNAKE_SCANS_PER_HORIZONTAL_PASS = args.scans_per_pass
     SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = args.pause_no_gem
-    ZOOM_OUT_CLICKS_AFTER_MARCH = args.zoom_out_clicks
+    ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = args.zoom_out_clicks_first
+    ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = args.zoom_out_clicks_second
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
