@@ -438,22 +438,6 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
                 print("Failed to find or action Gather Button after all retries.")
                 return False
 
-        # Check for Orange March Button AFTER successful Gather
-        print("Checking for orange march button...")
-        orange_march_location = find_template(
-            ORANGE_MARCH_BUTTON_TEMPLATE,
-            CONFIDENCE_GENERAL,
-            "Orange March Button",
-            use_grayscale=True,
-            # Not taking a screenshot on fail for this one by default, can be added if needed
-            # debug_screenshot_on_fail=DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS,
-            # screenshot_filename_prefix="fail_orange_march_"
-        )
-        if orange_march_location:
-            print(f"Orange march button found at {orange_march_location}. Waiting for {ORANGE_MARCH_WAIT_SECONDS // 60} minutes.")
-            time.sleep(ORANGE_MARCH_WAIT_SECONDS)
-            print("Finished waiting after orange march button detection.")
-            return "orange_march_detected" # Signal to main loop
 
         new_troop_action_result = find_and_click(
             NEW_TROOP_TEMPLATE, CONFIDENCE_GENERAL, "New Troop Button",
@@ -488,6 +472,23 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
             else:
                 print("Failed to find or action March Button after all retries.")
                 return False
+
+        # Check for Orange March Button AFTER attempting to March
+        print("Checking for orange march button...")
+        orange_march_location = find_template(
+            ORANGE_MARCH_BUTTON_TEMPLATE,
+            CONFIDENCE_GENERAL,
+            "Orange March Button",
+            use_grayscale=True,
+            # Not taking a screenshot on fail for this one by default, can be added if needed
+            # debug_screenshot_on_fail=DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS,
+            # screenshot_filename_prefix="fail_orange_march_",
+        )
+        if orange_march_location:
+            print(f"Orange march button found at {orange_march_location}. Waiting for {ORANGE_MARCH_WAIT_SECONDS // 60} minutes.")
+            time.sleep(ORANGE_MARCH_WAIT_SECONDS)
+            print("Finished waiting after orange march button detection.")
+            return "orange_march_detected" # Signal to main loop
 
         print(f"--- Successfully dispatched troops to gem deposit on attempt {attempt + 1}! ---")
         return True
