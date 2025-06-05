@@ -151,6 +151,12 @@ def parse_args():
         default=ZOOM_OUT_CLICKS_AFTER_MARCH,
         help="Mouse wheel clicks to zoom out after dispatching a march",
     )
+    parser.add_argument(
+        "--farming-duration",
+        type=int,
+        default=FARMING_DURATION_SECONDS,
+        help="Time in seconds to wait after sending a march",
+    )
     return parser.parse_args()
 
 
@@ -671,5 +677,6 @@ if __name__ == "__main__":
     SNAKE_SCANS_PER_HORIZONTAL_PASS = args.scans_per_pass
     SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = args.pause_no_gem
     ZOOM_OUT_CLICKS_AFTER_MARCH = args.zoom_out_clicks
+    FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()

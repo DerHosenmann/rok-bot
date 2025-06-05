@@ -10,6 +10,7 @@ DEFAULT_SCROLL_DURATION = 2.0
 DEFAULT_SCANS_PER_PASS = 5
 DEFAULT_PAUSE_NO_GEM = 0.5
 DEFAULT_ZOOM_CLICKS = 0
+DEFAULT_FARMING_DURATION = 300
 
 bot_process = None
 log_file_position = 0
@@ -29,6 +30,7 @@ def start_bot():
                 '--scans-per-pass', str(scans_var.get()),
                 '--pause-no-gem', str(pause_var.get()),
                 '--zoom-out-clicks', str(zoom_var.get()),
+                '--farming-duration', str(farming_duration_var.get()),
             ])
             status_var.set('Bot running')
         except Exception as e:
@@ -90,6 +92,10 @@ ttk.Entry(options, textvariable=pause_var, width=6).grid(row=3, column=1, sticky
 ttk.Label(options, text='Zoom out clicks after march:').grid(row=4, column=0, sticky='w')
 zoom_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS)
 ttk.Entry(options, textvariable=zoom_var, width=6).grid(row=4, column=1, sticky='w')
+
+ttk.Label(options, text='Farming wait after dispatch (s):').grid(row=5, column=0, sticky='w')
+farming_duration_var = tk.IntVar(value=DEFAULT_FARMING_DURATION)
+ttk.Entry(options, textvariable=farming_duration_var, width=6).grid(row=5, column=1, sticky='w')
 
 start_button = ttk.Button(frame, text='Start Bot', command=start_bot)
 start_button.grid(row=0, column=0, padx=5, pady=5)

@@ -56,8 +56,9 @@ Alternatively, launch the GUI:
     python rok_bot/gui.py
     ```
     The GUI allows you to adjust the confidence level for detecting gem icons,
-    tweak how the bot moves across the map, and set how many mouse wheel clicks
-    the bot uses when zooming out. These values are passed to the bot as command
+    tweak how the bot moves across the map, set how many mouse wheel clicks
+    the bot uses when zooming out, and adjust how long the bot waits after
+    dispatching troops. These values are passed to the bot as command
     line arguments when you click **Start Bot**.
 3.  **Initial Countdown:** The script has a 5-second countdown before it starts interacting. Use this time to switch to the game window and ensure it's in focus.
 4.  **Stopping the Bot:**
@@ -69,7 +70,7 @@ Alternatively, launch the GUI:
 The main configuration variables are located at the top of the `rok_bot/gem_farmer.py` script. You can adjust:
 *   `CONFIDENCE_GEM`, `CONFIDENCE_GATHER`, `CONFIDENCE_GENERAL`: Confidence levels for image detection (0.0 to 1.0). Lower values may find more matches but can lead to false positives. Higher values require a closer match.
 *   `CLICK_DELAY_SHORT`, `CLICK_DELAY_MEDIUM`, `CLICK_DELAY_LONG`: Pauses after certain actions.
-*   `FARMING_DURATION_SECONDS`: How long to wait after successfully dispatching troops (default: 5 minutes).
+*   `FARMING_DURATION_SECONDS`: How long to wait after successfully dispatching troops (default: 5 minutes). This can also be set via the `--farming-duration` command line argument or in the GUI.
 *   `ORANGE_MARCH_BUTTON_TEMPLATE`: Path to the image for the special orange march button that might indicate a full farming queue (default: `images/orange_march_button.png`).
 *   `ORANGE_MARCH_WAIT_SECONDS`: Duration (in seconds) to wait if the orange march button is detected (default: `1800`, i.e., 30 minutes).
 *   `DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK`, `DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS`: Set to `True` or `False` to enable/disable debug screenshots. Screenshots are saved in the `rok_bot/debug_screenshots` directory.
