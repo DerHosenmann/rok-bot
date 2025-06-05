@@ -14,6 +14,7 @@ DEFAULT_ZOOM_CLICKS_SECOND = 0
 DEFAULT_ZOOM_CLICKS_THIRD = 0
 DEFAULT_ZOOM_CLICKS_FOURTH = 0
 DEFAULT_ZOOM_CLICKS_FIFTH = 0
+DEFAULT_DOWN_AFTER_ZOOM = 1.0
 DEFAULT_FARMING_DURATION = 300
 
 bot_process = None
@@ -38,6 +39,7 @@ def start_bot():
                 '--zoom-out-clicks-third', str(zoom_third_var.get()),
                 '--zoom-out-clicks-fourth', str(zoom_fourth_var.get()),
                 '--zoom-out-clicks-fifth', str(zoom_fifth_var.get()),
+                '--down-after-zoom-duration', str(down_after_zoom_var.get()),
                 '--farming-duration', str(farming_duration_var.get()),
             ])
             status_var.set('Bot running')
@@ -120,6 +122,10 @@ ttk.Entry(options, textvariable=zoom_fifth_var, width=6).grid(row=8, column=1, s
 ttk.Label(options, text='Farming wait after dispatch (s):').grid(row=9, column=0, sticky='w')
 farming_duration_var = tk.IntVar(value=DEFAULT_FARMING_DURATION)
 ttk.Entry(options, textvariable=farming_duration_var, width=6).grid(row=9, column=1, sticky='w')
+
+ttk.Label(options, text='Down key duration after zoom-out (s):').grid(row=10, column=0, sticky='w')
+down_after_zoom_var = tk.DoubleVar(value=DEFAULT_DOWN_AFTER_ZOOM)
+ttk.Entry(options, textvariable=down_after_zoom_var, width=6).grid(row=10, column=1, sticky='w')
 
 start_button = ttk.Button(frame, text='Start Bot', command=start_bot)
 start_button.grid(row=0, column=0, padx=5, pady=5)
