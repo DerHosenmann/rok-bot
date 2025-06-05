@@ -82,14 +82,22 @@ log_file_path = os.path.join(script_dir, LOG_FILE_NAME)
 open(log_file_path, 'w').close()  # clear log at start
 
 import builtins
+import logging
+
+logging.basicConfig(
+    filename=log_file_path,
+    level=logging.INFO,
+    format='[%(asctime)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def log_print(*args, **kwargs):
-    builtins.print(*args, **kwargs)
-    try:
-        with open(log_file_path, 'a', encoding='utf-8') as log_f:
-            builtins.print(*args, **kwargs, file=log_f)
-    except Exception as e:
-        builtins.print(f"Failed to write log file: {e}")
+    sep = kwargs.get('sep', ' ')
+    end = kwargs.get('end', '\n')
+    message = sep.join(str(a) for a in args)
+    timestamped = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}"
+    builtins.print(timestamped, end=end, sep=sep)
+    logging.info(message)
 
 print = log_print
 
