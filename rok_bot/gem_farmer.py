@@ -383,6 +383,15 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
     for attempt in range(MAX_SUBSEQUENT_STEP_RETRIES):
         print(f"\nAttempt {attempt + 1} of {MAX_SUBSEQUENT_STEP_RETRIES} for subsequent steps (Gather, New Troop, March)...")
 
+        # Ensure the gem menu is open by clicking the deposit at the start of each attempt
+        click_at_location(
+            initial_gem_location_box,
+            "Re-Click Initial Gem at Attempt Start",
+            move_duration=0.3,
+            pre_click_pause=0.1,
+        )
+        time.sleep(RETRY_PAUSE_SECONDS / 2)
+
         gather_button_location_result = find_and_click( # Renamed to avoid conflict
             GATHER_TEMPLATE, CONFIDENCE_GATHER, "Gather Button",
             click_delay_after=CLICK_DELAY_MEDIUM, use_grayscale=True,
