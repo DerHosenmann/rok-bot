@@ -3,6 +3,7 @@ import time
 import traceback
 import os
 import argparse
+import pygetwindow as gw
 
 # --- Configuration ---
 GEM_TEMPLATE_DAY = r'images/gem_deposit_template.png' # Adjusted path
@@ -56,6 +57,9 @@ DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK = True
 DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS = True
 SCREENSHOT_DIR = "debug_screenshots" # Will be relative to where script is run
 USE_ALT_CLICK_METHOD = False
+
+# Window management
+TARGET_WINDOW_SIZE = (1280, 720)  # Width x Height for the game window
 
 # Track deposits that have already been targeted to prevent sending troops twice
 # to the same location within a session.
@@ -138,6 +142,29 @@ def parse_args():
         help="Pause after a scan if no gem is found",
     )
     return parser.parse_args()
+
+
+def ensure_game_window_size(width=TARGET_WINDOW_SIZE[0], height=TARGET_WINDOW_SIZE[1],
+                            title_keywords=("Rise of Kingdoms", "BlueStacks", "LDPlayer")):
+    """Ensure the game window is resized to the desired dimensions."""
+    try:
+        for kw in title_keywords:
+            windows = gw.getWindowsWithTitle(kw)
+            if windows:
+                win = windows[0]
+                try:
+                    win.resizeTo(width, height)
+                    print(f"Set window '{win.title}' size to {width}x{height}")
+                except Exception as e:
+                    print(f"Failed to resize window '{win.title}': {e}")
+                try:
+                    win.activate()
+                except Exception:
+                    pass
+                return
+        print("Game window not found for resizing. Titles checked: " + ", ".join(title_keywords))
+    except Exception as e:
+        print(f"Error while adjusting window size: {e}")
 
 if (DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK or DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS) and not os.path.exists(screenshot_full_path):
     try:
@@ -437,6 +464,8 @@ def main_bot_loop():
 
 
     pyautogui.FAILSAFE = True
+
+    ensure_game_window_size()
 
     # nav_actions_taken_since_scan = 0 # Will be replaced by new search logic's scan counter/timer
 

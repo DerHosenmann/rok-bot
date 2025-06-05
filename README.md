@@ -11,6 +11,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 *   Configurable settings for confidence levels, delays, and navigation parameters.
 *   Debug options, including taking screenshots on certain events (e.g., after initial click, if gather fails).
 *   Simple GUI to start and stop the bot.
+*   Automatically resizes the game window to **1280x720** when the bot starts.
 
 ## Setup
 
@@ -43,6 +44,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 ## How to Run
 
 1.  **Open Rise of Kingdoms:** Make sure the game is running and is the active window on your primary screen. The bot interacts with whatever is visible on the screen.
+    The window will be resized to **1280x720** automatically when the bot starts.
 2.  **Run the script:**
     Navigate to the root directory of the project in your terminal and run:
     ```bash
