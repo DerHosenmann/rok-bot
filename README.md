@@ -10,6 +10,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 *   Navigates the map using a systematic 'snake' (boustrophedon) pattern to cover a large area, replacing the previous spiral search.
 *   Configurable settings for confidence levels, delays, and navigation parameters.
 *   Debug options, including taking screenshots on certain events (e.g., after initial click, if gather fails).
+*   Simple GUI to start and stop the bot.
 
 ## Setup
 
@@ -46,6 +47,10 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
     Navigate to the root directory of the project in your terminal and run:
     ```bash
     python rok_bot/gem_farmer.py
+    ```
+Alternatively, launch the GUI:
+    ```bash
+    python rok_bot/gui.py
     ```
 3.  **Initial Countdown:** The script has a 5-second countdown before it starts interacting. Use this time to switch to the game window and ensure it's in focus.
 4.  **Stopping the Bot:**
