@@ -12,6 +12,8 @@ DEFAULT_PAUSE_NO_GEM = 0.5
 DEFAULT_ZOOM_CLICKS_FIRST = 0
 DEFAULT_ZOOM_CLICKS_SECOND = 0
 DEFAULT_ZOOM_CLICKS_THIRD = 0
+DEFAULT_ZOOM_CLICKS_FOURTH = 0
+DEFAULT_ZOOM_CLICKS_FIFTH = 0
 DEFAULT_FARMING_DURATION = 300
 
 bot_process = None
@@ -34,6 +36,8 @@ def start_bot():
                 '--zoom-out-clicks-first', str(zoom_first_var.get()),
                 '--zoom-out-clicks-second', str(zoom_second_var.get()),
                 '--zoom-out-clicks-third', str(zoom_third_var.get()),
+                '--zoom-out-clicks-fourth', str(zoom_fourth_var.get()),
+                '--zoom-out-clicks-fifth', str(zoom_fifth_var.get()),
                 '--farming-duration', str(farming_duration_var.get()),
             ])
             status_var.set('Bot running')
@@ -100,12 +104,22 @@ ttk.Entry(options, textvariable=zoom_first_var, width=6).grid(row=4, column=1, s
 ttk.Label(options, text='Zoom out clicks after march (step 2):').grid(row=5, column=0, sticky='w')
 zoom_second_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS_SECOND)
 ttk.Entry(options, textvariable=zoom_second_var, width=6).grid(row=5, column=1, sticky='w')
+
 ttk.Label(options, text='Zoom out clicks after march (step 3):').grid(row=6, column=0, sticky='w')
 zoom_third_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS_THIRD)
 ttk.Entry(options, textvariable=zoom_third_var, width=6).grid(row=6, column=1, sticky='w')
-ttk.Label(options, text='Farming wait after dispatch (s):').grid(row=7, column=0, sticky='w')
+
+ttk.Label(options, text='Zoom out clicks after march (step 4):').grid(row=7, column=0, sticky='w')
+zoom_fourth_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS_FOURTH)
+ttk.Entry(options, textvariable=zoom_fourth_var, width=6).grid(row=7, column=1, sticky='w')
+
+ttk.Label(options, text='Zoom out clicks after march (step 5):').grid(row=8, column=0, sticky='w')
+zoom_fifth_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS_FIFTH)
+ttk.Entry(options, textvariable=zoom_fifth_var, width=6).grid(row=8, column=1, sticky='w')
+
+ttk.Label(options, text='Farming wait after dispatch (s):').grid(row=9, column=0, sticky='w')
 farming_duration_var = tk.IntVar(value=DEFAULT_FARMING_DURATION)
-ttk.Entry(options, textvariable=farming_duration_var, width=6).grid(row=7, column=1, sticky='w')
+ttk.Entry(options, textvariable=farming_duration_var, width=6).grid(row=9, column=1, sticky='w')
 
 start_button = ttk.Button(frame, text='Start Bot', command=start_bot)
 start_button.grid(row=0, column=0, padx=5, pady=5)

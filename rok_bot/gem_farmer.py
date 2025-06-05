@@ -64,7 +64,7 @@ TARGET_WINDOW_SIZE = (1280, 720)  # Width x Height for the game window
 
 # Track deposits that have already been targeted to prevent sending troops twice
 # to the same location within a session.
-DISPATCH_IGNORE_RADIUS = 40  # pixels
+DISPATCH_IGNORE_RADIUS = 80  # pixels
 DISPATCHED_LOCATIONS = []
 RIGHT_CLICK_NEXT_GEM = False
 
@@ -88,12 +88,13 @@ SNAKE_SCROLL_SEGMENT_DURATION = 2.0 # Seconds to scroll for each segment of a ho
 SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 
 # Zoom configuration
-# Up to three zoom-out steps after dispatching a march
+# Up to five zoom-out steps after dispatching a march
 # These represent the number of mouse wheel clicks for each step.
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = 0
+ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = 0
 # Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
@@ -176,6 +177,12 @@ def parse_args():
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH,
         help="Mouse wheel clicks for the fourth zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-out-clicks-fifth",
+        type=int,
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH,
+        help="Mouse wheel clicks for the fifth zoom-out after dispatching a march",
     )
     parser.add_argument(
         "--farming-duration",
@@ -416,7 +423,7 @@ def record_dispatched(location_box):
 
 
 def zoom_out_after_dispatch():
-    """Zoom out the map in up to four steps after a successful dispatch."""
+    """Zoom out the map in up to five steps after a successful dispatch."""
     if ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST > 0:
         print(
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST} wheel clicks (step 1) after dispatch..."
@@ -440,6 +447,12 @@ def zoom_out_after_dispatch():
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH} wheel clicks (step 4) after dispatch..."
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH)
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH > 0:
+        print(
+            f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH} wheel clicks (step 5) after dispatch..."
+        )
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH)
 
 
 def perform_quick_gem_farming_cycle(initial_gem_location_box):
@@ -770,6 +783,7 @@ if __name__ == "__main__":
     ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = args.zoom_out_clicks_second
     ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = args.zoom_out_clicks_third
     ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = args.zoom_out_clicks_fourth
+    ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = args.zoom_out_clicks_fifth
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
