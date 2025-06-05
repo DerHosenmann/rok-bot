@@ -95,6 +95,8 @@ ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = 0
+# Number of mouse wheel clicks to zoom in between the fourth and fifth zoom-out steps
+ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = 0
 # Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
@@ -177,6 +179,15 @@ def parse_args():
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH,
         help="Mouse wheel clicks for the fourth zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-in-clicks-between-fourth-and-fifth",
+        type=int,
+        default=ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH,
+        help=(
+            "Mouse wheel clicks for a zoom-in step between the fourth and fifth "
+            "zoom-out after dispatching a march"
+        ),
     )
     parser.add_argument(
         "--zoom-out-clicks-fifth",
@@ -447,6 +458,12 @@ def zoom_out_after_dispatch():
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH} wheel clicks (step 4) after dispatch..."
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH)
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH > 0:
+        print(
+            f"Zooming in {ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH} wheel clicks between steps 4 and 5 after dispatch..."
+        )
+        pyautogui.scroll(ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH)
         time.sleep(ZOOM_OUT_DELAY_BETWEEN)
     if ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH > 0:
         print(
@@ -784,6 +801,7 @@ if __name__ == "__main__":
     ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = args.zoom_out_clicks_third
     ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = args.zoom_out_clicks_fourth
     ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = args.zoom_out_clicks_fifth
+    ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = args.zoom_in_clicks_between_fourth_and_fifth
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
