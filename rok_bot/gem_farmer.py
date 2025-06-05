@@ -30,6 +30,7 @@ GATHERING_ENEMY_TEMPLATES = [r'images/GatheringByEnemy.png', r'images/GatheringB
 GATHERING_MEMBER_TEMPLATES = [r'images/GatheringByMember.png', r'images/GatheringByMember2.png']
 MARCHING_TEMPLATES = [r'images/GatheringBySelf.png', r'images/GatheringBySomeone.png']
 
+
 CONFIDENCE_GEM = 0.8
 CONFIDENCE_GATHER = 0.80
 CONFIDENCE_GENERAL = 0.85
@@ -146,8 +147,14 @@ def find_template(template_image_path, confidence_level, description="template",
     try:
         location = pyautogui.locateOnScreen(full_template_path, confidence=confidence_level, grayscale=use_grayscale)
         if location:
-            print(f"Found '{description}' at: {location}")
-            return location
+            if (location.left == 0 and location.top == 0 and
+                    location.width <= 5 and location.height <= 5):
+                # Extremely small match in the top-left corner is often a false positive
+                print(f"Suspicious detection for '{description}' at {location}. Ignoring as false positive.")
+                location = None
+            else:
+                print(f"Found '{description}' at: {location}")
+                return location
         else:
             if debug_screenshot_on_fail:
                 try:
