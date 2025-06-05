@@ -192,33 +192,27 @@ def find_template(template_image_path, confidence_level, description="template",
         return None
 
 def verify_deposit_available():
-    # Confirm a gem deposit is present
+    """Verify the clicked object is a gem deposit.
+
+    All checks for whether another player is gathering have been removed. The
+    availability of a deposit should be determined **before** clicking using
+    :func:`is_deposit_gathered_on_map`.
+    """
+
     found_confirm = False
     for tmpl in GEM_VERIFY_TEMPLATES:
-        if find_template(tmpl, CONFIDENCE_GENERAL, f"Verify Gem {os.path.basename(tmpl)}", use_grayscale=True):
+        if find_template(
+            tmpl,
+            CONFIDENCE_GENERAL,
+            f"Verify Gem {os.path.basename(tmpl)}",
+            use_grayscale=True,
+        ):
             found_confirm = True
             break
+
     if not found_confirm:
         print("Gem confirmation images not found - skipping this icon.")
         return False
-
-    # Check various gathering states
-    for check_list, desc in [
-        (GATHERING_SELF_TEMPLATES, "Already Gathering (self)"),
-        (GATHERING_ALLY_TEMPLATES, "Gathered by Ally"),
-        (GATHERING_ENEMY_TEMPLATES, "Gathered by Enemy"),
-        (GATHERING_MEMBER_TEMPLATES, "Gathered by Member"),
-    ]:
-        for tmpl in check_list:
-            if find_template(tmpl, CONFIDENCE_GENERAL, desc, use_grayscale=True):
-                print(f"{desc} detected. Skipping deposit.")
-                return False
-
-
-    # Previously the bot checked for "GatheringBySelf" and "GatheringBySomeone"
-    # templates (stored in ``MARCHING_TEMPLATES``) to determine if troops were
-    # already marching to the deposit. This caused false positives, so the
-    # check has been removed.
 
     return True
 
