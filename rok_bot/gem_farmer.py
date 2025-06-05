@@ -86,11 +86,12 @@ SNAKE_SCROLL_SEGMENT_DURATION = 2.0 # Seconds to scroll for each segment of a ho
 SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 
 # Zoom configuration
-# Two-step zoom out after dispatching a march
+# Up to three zoom-out steps after dispatching a march
 # These represent the number of mouse wheel clicks for each step.
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = 0
-# Delay between the two zoom actions (seconds)
+ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = 0
+# Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
 # Create screenshot directory
@@ -160,6 +161,12 @@ def parse_args():
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND,
         help="Mouse wheel clicks for the second zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-out-clicks-third",
+        type=int,
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD,
+        help="Mouse wheel clicks for the third zoom-out after dispatching a march",
     )
     parser.add_argument(
         "--farming-duration",
@@ -383,7 +390,7 @@ def record_dispatched(location_box):
 
 
 def zoom_out_after_dispatch():
-    """Zoom out the map in two steps after a successful dispatch."""
+    """Zoom out the map in up to three steps after a successful dispatch."""
     if ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST > 0:
         print(
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST} wheel clicks (step 1) after dispatch..."
@@ -395,6 +402,12 @@ def zoom_out_after_dispatch():
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND} wheel clicks (step 2) after dispatch..."
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND)
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD > 0:
+        print(
+            f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD} wheel clicks (step 3) after dispatch..."
+        )
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD)
 
 
 def is_deposit_gathered_on_map(location_box, margin=30):
@@ -695,6 +708,7 @@ if __name__ == "__main__":
     SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = args.pause_no_gem
     ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = args.zoom_out_clicks_first
     ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = args.zoom_out_clicks_second
+    ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = args.zoom_out_clicks_third
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
