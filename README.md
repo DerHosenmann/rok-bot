@@ -77,6 +77,7 @@ The main configuration variables are located at the top of the `rok_bot/gem_farm
 *   `ORANGE_MARCH_WAIT_SECONDS`: Duration (in seconds) to wait if the orange march button is detected (default: `1800`, i.e., 30 minutes).
 *   `DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK`, `DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS`: Set to `True` or `False` to enable/disable debug screenshots. Screenshots are saved in the `rok_bot/debug_screenshots` directory.
 *   `ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST`, `ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND`, `ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD`, `ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH`, and `ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH`: Mouse wheel clicks used for each zoom-out step after sending a march.
+*   `ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH`: Mouse wheel clicks for a zoom-in step performed between the fourth and fifth zoom-out steps.
 *   `ZOOM_OUT_DELAY_BETWEEN`: Delay in seconds between the zoom-out steps (default: `0.1`).
 
 ### Systematic Search (Snake Pattern) Configuration:
