@@ -358,13 +358,23 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
             # Use screenshot_full_path for saving screenshots
             filename = os.path.join(screenshot_full_path, f"after_initial_click_on_located_gem_{timestamp}.png")
             pyautogui.screenshot(filename)
-            print("DEBUG: Screenshot after initial click on located gem saved to" 
+            print("DEBUG: Screenshot after initial click on located gem saved to"
                   f" {filename}. EXAMINE THIS.")
             print("       Verify if the game menu opened and if the 'Gather Button' is visible.")
         except Exception as e:
             print(f"DEBUG: Failed to take screenshot: {e}")
-    
+
     time.sleep(CLICK_DELAY_MEDIUM)
+
+    # After the initial click the game typically centers the gem on screen.
+    # Update the location box so subsequent re-clicks always target the
+    # screen center rather than the original coordinates.
+    initial_gem_location_box = (
+        TARGET_WINDOW_SIZE[0] // 2 - 1,
+        TARGET_WINDOW_SIZE[1] // 2 - 1,
+        2,
+        2,
+    )
 
     if not verify_deposit_available():
         print("Deposit not available after verification. Skipping.")
