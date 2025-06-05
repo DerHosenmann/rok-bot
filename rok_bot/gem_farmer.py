@@ -173,6 +173,37 @@ if (DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK or DEBUG_TAKE_SCREENSHOT_IF_GATHER_F
     except Exception as e:
         print(f"Could not create screenshot directory {screenshot_full_path}: {e}")
 
+# Utility to fetch the active game window
+def get_game_window(title_keywords=("Rise of Kingdoms", "BlueStacks", "LDPlayer")):
+    """Return the first window matching known game titles."""
+    try:
+        for kw in title_keywords:
+            windows = gw.getWindowsWithTitle(kw)
+            if windows:
+                return windows[0]
+    except Exception as e:
+        print(f"Error while retrieving game window: {e}")
+    return None
+
+# Helper to calculate the center box of the game window
+def get_game_center_box():
+    """Return a small box centred on the game window for reliable clicking."""
+    win = get_game_window()
+    if win:
+        return (
+            win.left + win.width // 2 - 1,
+            win.top + win.height // 2 - 1,
+            2,
+            2,
+        )
+    # Fallback to assuming the window starts at (0,0)
+    return (
+        TARGET_WINDOW_SIZE[0] // 2 - 1,
+        TARGET_WINDOW_SIZE[1] // 2 - 1,
+        2,
+        2,
+    )
+
 # --- Helper Functions ---
 def find_template(template_image_path, confidence_level, description="template", use_grayscale=False,
                   debug_screenshot_on_fail=False, screenshot_filename_prefix="fail_", region=None):
@@ -366,15 +397,10 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
 
     time.sleep(CLICK_DELAY_MEDIUM)
 
-    # After the initial click the game typically centers the gem on screen.
-    # Update the location box so subsequent re-clicks always target the
-    # screen center rather than the original coordinates.
-    initial_gem_location_box = (
-        TARGET_WINDOW_SIZE[0] // 2 - 1,
-        TARGET_WINDOW_SIZE[1] // 2 - 1,
-        2,
-        2,
-    )
+    # After the initial click the game typically centers the gem within the game
+    # window. Calculate the window centre dynamically so re-clicks remain
+    # accurate even if the window has been moved.
+    initial_gem_location_box = get_game_center_box()
 
     if not verify_deposit_available():
         print("Deposit not available after verification. Skipping.")
@@ -384,6 +410,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         print(f"\nAttempt {attempt + 1} of {MAX_SUBSEQUENT_STEP_RETRIES} for subsequent steps (Gather, New Troop, March)...")
 
         # Ensure the gem menu is open by clicking the deposit at the start of each attempt
+        initial_gem_location_box = get_game_center_box()
         click_at_location(
             initial_gem_location_box,
             "Re-Click Initial Gem at Attempt Start",
@@ -403,6 +430,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         if not gather_button_location_result or gather_button_location_result is True:
             if attempt < MAX_SUBSEQUENT_STEP_RETRIES - 1:
                 print(f"Gather Button not found or click failed on attempt {attempt + 1}. Re-clicking initial gem and retrying...")
+                initial_gem_location_box = get_game_center_box()
                 click_at_location(initial_gem_location_box, "Re-Click Initial Gem", move_duration=0.3, pre_click_pause=0.1)
                 time.sleep(RETRY_PAUSE_SECONDS)
                 continue
@@ -438,6 +466,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         if new_troop_action_result is None: # This means it was mandatory (not optional) OR click failed
              if attempt < MAX_SUBSEQUENT_STEP_RETRIES - 1:
                 print("New Troop Button (optional but failed interaction or mandatory and failed). Re-clicking initial gem...")
+                initial_gem_location_box = get_game_center_box()
                 click_at_location(initial_gem_location_box, "Re-Click Initial Gem (due to New Troop interaction fail)", move_duration=0.3, pre_click_pause=0.1)
                 time.sleep(RETRY_PAUSE_SECONDS)
                 continue
@@ -452,6 +481,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
         if not march_button_location_result or march_button_location_result is True:
             if attempt < MAX_SUBSEQUENT_STEP_RETRIES - 1:
                 print("March Button not found or click failed. Re-clicking initial gem...")
+                initial_gem_location_box = get_game_center_box()
                 click_at_location(initial_gem_location_box, "Re-Click Initial Gem (due to March fail)", move_duration=0.3, pre_click_pause=0.1)
                 time.sleep(RETRY_PAUSE_SECONDS)
                 continue
