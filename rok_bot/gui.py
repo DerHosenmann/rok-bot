@@ -11,13 +11,15 @@ DEFAULT_SCANS_PER_PASS = 5
 DEFAULT_PAUSE_NO_GEM = 0.5
 
 bot_process = None
+log_file_position = 0
 
 def start_bot():
-    global bot_process
+    global bot_process, log_file_position
     if bot_process is None or bot_process.poll() is not None:
         script_path = os.path.join(os.path.dirname(__file__), 'gem_farmer.py')
         try:
             open(log_file_path, 'w').close()
+            log_file_position = 0
             bot_process = subprocess.Popen([
                 'python',
                 script_path,
@@ -100,14 +102,25 @@ log_box.pack(padx=10, pady=10, fill='both', expand=True)
 log_file_path = os.path.join(os.path.dirname(__file__), 'bot_status.log')
 
 def update_log_box():
+    global log_file_position
     try:
         with open(log_file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        log_box.config(state='normal')
-        log_box.delete('1.0', tk.END)
-        log_box.insert(tk.END, ''.join(lines[-300:]))
-        log_box.see(tk.END)
-        log_box.config(state='disabled')
+            f.seek(log_file_position)
+            new_text = f.read()
+            log_file_position = f.tell()
+        if new_text:
+            log_box.config(state='normal')
+            log_box.insert(tk.END, new_text)
+            # Limit to last 300 lines
+            lines = log_box.get('1.0', tk.END).splitlines()
+            if len(lines) > 300:
+                start_index = len(lines) - 300 + 1
+                log_box.delete('1.0', f'{start_index}.0')
+            # Auto-scroll only if at bottom
+            _, last = log_box.yview()
+            if last == 1.0:
+                log_box.see(tk.END)
+            log_box.config(state='disabled')
     except FileNotFoundError:
         pass
     root.after(1000, update_log_box)
