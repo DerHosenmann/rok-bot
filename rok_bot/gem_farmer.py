@@ -28,7 +28,10 @@ GATHERING_SELF_TEMPLATES = [r'images/Gathering.png', r'images/Gathering2.png']
 GATHERING_ALLY_TEMPLATES = [r'images/GatheringByAlly.png', r'images/GatheringByAlly2.png']
 GATHERING_ENEMY_TEMPLATES = [r'images/GatheringByEnemy.png', r'images/GatheringByEnemy2.png']
 GATHERING_MEMBER_TEMPLATES = [r'images/GatheringByMember.png', r'images/GatheringByMember2.png']
-MARCHING_TEMPLATES = [r'images/GatheringBySelf.png', r'images/GatheringBySomeone.png']
+# Images that indicated a march in progress to the deposit were previously checked
+# via ``MARCHING_TEMPLATES``. These checks caused the bot to skip deposits
+# incorrectly, so the list is now empty to disable the behaviour.
+MARCHING_TEMPLATES = []
 
 
 CONFIDENCE_GEM = 0.8
@@ -53,6 +56,11 @@ DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK = True
 DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS = True
 SCREENSHOT_DIR = "debug_screenshots" # Will be relative to where script is run
 USE_ALT_CLICK_METHOD = False
+
+# Track deposits that have already been targeted to prevent sending troops twice
+# to the same location within a session.
+DISPATCH_IGNORE_RADIUS = 40  # pixels
+DISPATCHED_LOCATIONS = []
 
 # --- Systematic Search Configuration ---
 SEARCH_PATTERN_TYPE = "snake" # Defines the active search pattern
@@ -205,10 +213,11 @@ def verify_deposit_available():
                 print(f"{desc} detected. Skipping deposit.")
                 return False
 
-    for tmpl in MARCHING_TEMPLATES:
-        if find_template(tmpl, CONFIDENCE_GENERAL, "Marching to Deposit", use_grayscale=True):
-            print("Troops already marching to this deposit. Skipping.")
-            return False
+
+    # Previously the bot checked for "GatheringBySelf" and "GatheringBySomeone"
+    # templates (stored in ``MARCHING_TEMPLATES``) to determine if troops were
+    # already marching to the deposit. This caused false positives, so the
+    # check has been removed.
 
     return True
 
@@ -277,6 +286,21 @@ def find_and_click(template_image_path, confidence_level, description,
             print(f"'{description}' is optional and not found, continuing sequence.")
             return True # Indicate optional item was handled (by not being found)
         return None # Indicate mandatory item not found
+
+
+def is_near_dispatched(location_box):
+    """Return True if the location is close to a previously dispatched deposit."""
+    center_x, center_y = pyautogui.center(location_box)
+    for dx, dy in DISPATCHED_LOCATIONS:
+        if abs(center_x - dx) <= DISPATCH_IGNORE_RADIUS and abs(center_y - dy) <= DISPATCH_IGNORE_RADIUS:
+            return True
+    return False
+
+
+def record_dispatched(location_box):
+    """Record the center of a successfully dispatched gem deposit."""
+    center_x, center_y = pyautogui.center(location_box)
+    DISPATCHED_LOCATIONS.append((center_x, center_y))
 
 
 # --- Main Farming Logic (Called after a gem is SPOTTED) ---
@@ -453,11 +477,17 @@ def main_bot_loop():
                 initial_gem_location_box = find_any_gem_deposit(CONFIDENCE_GEM, use_grayscale=True)
 
                 if initial_gem_location_box:
+                    if is_near_dispatched(initial_gem_location_box):
+                        print("Gem deposit already dispatched recently. Skipping.")
+                        action_taken_in_current_segment = False
+                        continue
+
                     print(f"GEM SPOTTED at {initial_gem_location_box}! Pausing navigation to attempt farming.")
                     farming_outcome = perform_full_gem_farming_cycle(initial_gem_location_box)
                     action_taken_in_current_segment = True # Mark that an action occurred
 
                     if farming_outcome is True:
+                        record_dispatched(initial_gem_location_box)
                         print(f"Farming successful. Standard {FARMING_DURATION_SECONDS // 60} min wait starts.")
                         for i_waitCounter in range(FARMING_DURATION_SECONDS, 0, -1):
                             print(f"\rTime remaining: {i_waitCounter:03d}s ", end="")
