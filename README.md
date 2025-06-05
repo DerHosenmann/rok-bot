@@ -52,6 +52,9 @@ Alternatively, launch the GUI:
     ```bash
     python rok_bot/gui.py
     ```
+    The GUI allows you to adjust the confidence level for detecting gem icons
+    and tweak how the bot moves across the map before starting. These values are
+    passed to the bot as command line arguments when you click **Start Bot**.
 3.  **Initial Countdown:** The script has a 5-second countdown before it starts interacting. Use this time to switch to the game window and ensure it's in focus.
 4.  **Stopping the Bot:**
     *   **Failsafe:** Quickly move your mouse cursor to one of the corners of your primary screen. This will trigger `pyautogui`'s failsafe mechanism and stop the script.
