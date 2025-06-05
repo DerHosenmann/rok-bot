@@ -2,6 +2,7 @@ import pyautogui
 import time
 import traceback
 import os
+import argparse
 
 # --- Configuration ---
 GEM_TEMPLATE_DAY = r'images/gem_deposit_template.png' # Adjusted path
@@ -10,6 +11,24 @@ GATHER_TEMPLATE = r'images/gather_template.png' # Adjusted path
 NEW_TROOP_TEMPLATE = r'images/new_troop_template.png' # Adjusted path
 MARCH_TEMPLATE = r'images/march_template.png' # Adjusted path
 ORANGE_MARCH_BUTTON_TEMPLATE = r'images/orange_march_button.png' # New
+
+# Gem icons for different zoom levels
+GEM_ICON_ZOOM1_TEMPLATES = [rf'images/GemDeposit0{i}.png' for i in range(1, 9)]
+GEM_ICON_ZOOM2_TEMPLATES = [rf'images/GemDepositD0{i}.png' for i in range(1, 9)]
+
+# Images to verify a real gem deposit after clicking an icon
+GEM_VERIFY_TEMPLATES = [
+    r'images/Gem.png',
+    r'images/Gem2.png',
+    r'images/Gem3.png',
+]
+
+# Gathering state templates
+GATHERING_SELF_TEMPLATES = [r'images/Gathering.png', r'images/Gathering2.png']
+GATHERING_ALLY_TEMPLATES = [r'images/GatheringByAlly.png', r'images/GatheringByAlly2.png']
+GATHERING_ENEMY_TEMPLATES = [r'images/GatheringByEnemy.png', r'images/GatheringByEnemy2.png']
+GATHERING_MEMBER_TEMPLATES = [r'images/GatheringByMember.png', r'images/GatheringByMember2.png']
+MARCHING_TEMPLATES = [r'images/GatheringBySelf.png', r'images/GatheringBySomeone.png']
 
 CONFIDENCE_GEM = 0.8
 CONFIDENCE_GATHER = 0.80
@@ -58,6 +77,51 @@ SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 script_dir = os.path.dirname(__file__)
 screenshot_full_path = os.path.join(script_dir, SCREENSHOT_DIR)
 
+LOG_FILE_NAME = "bot_status.log"
+log_file_path = os.path.join(script_dir, LOG_FILE_NAME)
+open(log_file_path, 'w').close()  # clear log at start
+
+import builtins
+
+def log_print(*args, **kwargs):
+    builtins.print(*args, **kwargs)
+    try:
+        with open(log_file_path, 'a', encoding='utf-8') as log_f:
+            builtins.print(*args, **kwargs, file=log_f)
+    except Exception as e:
+        builtins.print(f"Failed to write log file: {e}")
+
+print = log_print
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Rise of Kingdoms gem farming bot")
+    parser.add_argument(
+        "--confidence-gem",
+        type=float,
+        default=CONFIDENCE_GEM,
+        help="Confidence for detecting gem deposits",
+    )
+    parser.add_argument(
+        "--scroll-duration",
+        type=float,
+        default=SNAKE_SCROLL_SEGMENT_DURATION,
+        help="Duration in seconds for each horizontal scroll segment",
+    )
+    parser.add_argument(
+        "--scans-per-pass",
+        type=int,
+        default=SNAKE_SCANS_PER_HORIZONTAL_PASS,
+        help="Number of scan segments per horizontal pass",
+    )
+    parser.add_argument(
+        "--pause-no-gem",
+        type=float,
+        default=SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM,
+        help="Pause after a scan if no gem is found",
+    )
+    return parser.parse_args()
+
 if (DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK or DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS) and not os.path.exists(screenshot_full_path):
     try:
         os.makedirs(screenshot_full_path)
@@ -103,7 +167,44 @@ def find_template(template_image_path, confidence_level, description="template",
              print(f"CRITICAL FILE ERROR: Ensure '{full_template_path}' exists, path is correct, and it's a valid image.")
         return None
 
+def verify_deposit_available():
+    # Confirm a gem deposit is present
+    found_confirm = False
+    for tmpl in GEM_VERIFY_TEMPLATES:
+        if find_template(tmpl, CONFIDENCE_GENERAL, f"Verify Gem {os.path.basename(tmpl)}", use_grayscale=True):
+            found_confirm = True
+            break
+    if not found_confirm:
+        print("Gem confirmation images not found - skipping this icon.")
+        return False
+
+    # Check various gathering states
+    for check_list, desc in [
+        (GATHERING_SELF_TEMPLATES, "Already Gathering (self)"),
+        (GATHERING_ALLY_TEMPLATES, "Gathered by Ally"),
+        (GATHERING_ENEMY_TEMPLATES, "Gathered by Enemy"),
+        (GATHERING_MEMBER_TEMPLATES, "Gathered by Member"),
+    ]:
+        for tmpl in check_list:
+            if find_template(tmpl, CONFIDENCE_GENERAL, desc, use_grayscale=True):
+                print(f"{desc} detected. Skipping deposit.")
+                return False
+
+    for tmpl in MARCHING_TEMPLATES:
+        if find_template(tmpl, CONFIDENCE_GENERAL, "Marching to Deposit", use_grayscale=True):
+            print("Troops already marching to this deposit. Skipping.")
+            return False
+
+    return True
+
 def find_any_gem_deposit(confidence_level, use_grayscale):
+    # Search through all provided gem icon templates
+    for path in GEM_ICON_ZOOM1_TEMPLATES + GEM_ICON_ZOOM2_TEMPLATES:
+        location = find_template(path, confidence_level, f"Gem Icon {os.path.basename(path)}", use_grayscale=use_grayscale)
+        if location:
+            return location
+
+    # Fallback to legacy day/night templates if provided
     location = find_template(GEM_TEMPLATE_DAY, confidence_level, "Gem Deposit (Day)", use_grayscale=use_grayscale)
     if location:
         return location
@@ -184,6 +285,10 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
             print(f"DEBUG: Failed to take screenshot: {e}")
     
     time.sleep(CLICK_DELAY_MEDIUM)
+
+    if not verify_deposit_available():
+        print("Deposit not available after verification. Skipping.")
+        return False
 
     for attempt in range(MAX_SUBSEQUENT_STEP_RETRIES):
         print(f"\nAttempt {attempt + 1} of {MAX_SUBSEQUENT_STEP_RETRIES} for subsequent steps (Gather, New Troop, March)...")
@@ -394,5 +499,14 @@ if __name__ == "__main__":
     # before main_bot_loop (though in this script, they are not directly)
     # However, for robustness, especially if you refactor later:
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    screenshot_full_path = os.path.join(script_dir, SCREENSHOT_DIR) # Define for global scope if helper functions are called standalone
+    screenshot_full_path = os.path.join(script_dir, SCREENSHOT_DIR)  # Define for global scope if helper functions are called standalone
+
+    args = parse_args()
+
+    # Override key configuration variables with CLI values
+    CONFIDENCE_GEM = args.confidence_gem
+    SNAKE_SCROLL_SEGMENT_DURATION = args.scroll_duration
+    SNAKE_SCANS_PER_HORIZONTAL_PASS = args.scans_per_pass
+    SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = args.pause_no_gem
+
     main_bot_loop()
