@@ -12,6 +12,7 @@ GATHER_TEMPLATE = r'images/gather_template.png' # Adjusted path
 NEW_TROOP_TEMPLATE = r'images/new_troop_template.png' # Adjusted path
 MARCH_TEMPLATE = r'images/march_template.png' # Adjusted path
 ORANGE_MARCH_BUTTON_TEMPLATE = r'images/orange_march_button.png' # New
+TROOP_BACK_TEMPLATE = r'images/troop_back.png'
 
 # Gem icons for different zoom levels
 GEM_ICON_ZOOM1_TEMPLATES = [rf'images/GemDeposit0{i}.png' for i in range(1, 9)]
@@ -65,6 +66,7 @@ TARGET_WINDOW_SIZE = (1280, 720)  # Width x Height for the game window
 # to the same location within a session.
 DISPATCH_IGNORE_RADIUS = 40  # pixels
 DISPATCHED_LOCATIONS = []
+RIGHT_CLICK_NEXT_GEM = False
 
 # --- Systematic Search Configuration ---
 SEARCH_PATTERN_TYPE = "snake" # Defines the active search pattern
@@ -91,6 +93,7 @@ SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = 0
+ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = 0
 # Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
@@ -167,6 +170,12 @@ def parse_args():
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD,
         help="Mouse wheel clicks for the third zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-out-clicks-fourth",
+        type=int,
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH,
+        help="Mouse wheel clicks for the fourth zoom-out after dispatching a march",
     )
     parser.add_argument(
         "--farming-duration",
@@ -349,6 +358,23 @@ def click_at_location(location_box, description="location", move_duration=DEFAUL
         print(f"Error during move or click operation for '{description}': {e}")
         traceback.print_exc(); return False
 
+def right_click_at_location(location_box, description="location", move_duration=DEFAULT_MOVE_DURATION, pre_click_pause=PRE_CLICK_DELAY):
+    """Perform a right-click at the specified location."""
+    if not location_box:
+        print(f"No location_box provided for '{description}', cannot right-click.")
+        return False
+    try:
+        center_x, center_y = pyautogui.center(location_box)
+        pyautogui.moveTo(center_x, center_y, duration=move_duration)
+        if pre_click_pause > 0:
+            time.sleep(pre_click_pause)
+        pyautogui.click(button='right')
+        print(f"Right-clicked '{description}' at ({int(center_x)}, {int(center_y)})")
+        return True
+    except Exception as e:
+        print(f"Error during right-click operation for '{description}': {e}")
+        traceback.print_exc(); return False
+
 def find_and_click(template_image_path, confidence_level, description,
                    click_delay_after=CLICK_DELAY_SHORT, optional=False,
                    move_duration=DEFAULT_MOVE_DURATION, pre_click_pause=PRE_CLICK_DELAY,
@@ -390,7 +416,7 @@ def record_dispatched(location_box):
 
 
 def zoom_out_after_dispatch():
-    """Zoom out the map in up to three steps after a successful dispatch."""
+    """Zoom out the map in up to four steps after a successful dispatch."""
     if ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST > 0:
         print(
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST} wheel clicks (step 1) after dispatch..."
@@ -408,7 +434,22 @@ def zoom_out_after_dispatch():
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD} wheel clicks (step 3) after dispatch..."
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD)
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH > 0:
+        print(
+            f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH} wheel clicks (step 4) after dispatch..."
+        )
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH)
 
+
+def perform_quick_gem_farming_cycle(initial_gem_location_box):
+    """Farm a gem deposit using a single right-click."""
+    print("\n--- Quick right-click gem farming ---")
+    if not right_click_at_location(initial_gem_location_box, "Quick Right-Click Gem", move_duration=0.5, pre_click_pause=0.4):
+        print("Failed to right-click on the located gem.")
+        return False
+    zoom_out_after_dispatch()
+    return True
 
 def is_deposit_gathered_on_map(location_box, margin=30):
     """Return True if the provided location appears to be already gathered on the map."""
@@ -554,6 +595,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
 
 # --- Main Program Loop ---
 def main_bot_loop():
+    global RIGHT_CLICK_NEXT_GEM
     print("Rise of Kingdoms Gem Farming Bot with EXPANDING SPIRAL Navigation (Day/Night Scan) - Starting...")
     print(f"Farming duration per cycle: {FARMING_DURATION_SECONDS} seconds.")
     print(f"Max retries for steps after initial click: {MAX_SUBSEQUENT_STEP_RETRIES}")
@@ -621,6 +663,20 @@ def main_bot_loop():
                     # Reset flag if an action was taken in the previous iteration of this loop
                     action_taken_in_current_segment = False 
 
+                # Check for returning troops indicator
+                troop_back_location = find_template(
+                    TROOP_BACK_TEMPLATE,
+                    CONFIDENCE_GENERAL,
+                    "Troop Back",
+                    use_grayscale=True,
+                )
+                if troop_back_location:
+                    click_at_location(troop_back_location, "Troop Back", move_duration=0.3, pre_click_pause=0.1)
+                    RIGHT_CLICK_NEXT_GEM = True
+                    print("Troop back detected. Next gem will be farmed with right click.")
+                    time.sleep(CLICK_DELAY_SHORT)
+                    continue
+
                 # 2. Scan for gems
                 print("Scanning for gem deposits (Day or Night)...")
                 initial_gem_location_box = find_any_gem_deposit(CONFIDENCE_GEM, use_grayscale=True)
@@ -636,7 +692,11 @@ def main_bot_loop():
                         continue
 
                     print(f"GEM SPOTTED at {initial_gem_location_box}! Pausing navigation to attempt farming.")
-                    farming_outcome = perform_full_gem_farming_cycle(initial_gem_location_box)
+                    if RIGHT_CLICK_NEXT_GEM:
+                        farming_outcome = perform_quick_gem_farming_cycle(initial_gem_location_box)
+                        RIGHT_CLICK_NEXT_GEM = False
+                    else:
+                        farming_outcome = perform_full_gem_farming_cycle(initial_gem_location_box)
                     action_taken_in_current_segment = True # Mark that an action occurred
 
                     if farming_outcome is True:
@@ -709,6 +769,7 @@ if __name__ == "__main__":
     ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST = args.zoom_out_clicks_first
     ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND = args.zoom_out_clicks_second
     ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = args.zoom_out_clicks_third
+    ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = args.zoom_out_clicks_fourth
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()

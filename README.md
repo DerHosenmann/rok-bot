@@ -12,7 +12,8 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 *   Debug options, including taking screenshots on certain events (e.g., after initial click, if gather fails).
 *   Simple GUI to start and stop the bot.
 *   Automatically resizes the game window to **1280x720** when the bot starts.
-*   Can zoom out after sending a march (in three steps with short pauses) or when skipping an unavailable deposit. Each step uses a configurable number of mouse wheel clicks.
+*   Can zoom out after sending a march (in up to four steps with short pauses) or when skipping an unavailable deposit. Each step uses a configurable number of mouse wheel clicks.
+*   Recognizes `troop_back.png` to quickly dispatch troops with a right-click on the next gem found.
 
 ## Setup
 
@@ -39,6 +40,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
         *   `new_troop_template.png` (The "New Troop" button, if applicable)
         *   `march_template.png` (The "March" button)
         *   `orange_march_button.png` (A specific orange-colored march button that indicates a full queue or special condition)
+        *   `troop_back.png` (Indicator that returning troops are ready; triggers a quick right-click dispatch on the next gem)
     *   Ensure these filenames match exactly, or update the paths at the top of the `rok_bot/gem_farmer.py` script.
     *   Good quality template images are crucial for the bot's accuracy. Crop them tightly around the object you want to detect.
 
@@ -74,7 +76,7 @@ The main configuration variables are located at the top of the `rok_bot/gem_farm
 *   `ORANGE_MARCH_BUTTON_TEMPLATE`: Path to the image for the special orange march button that might indicate a full farming queue (default: `images/orange_march_button.png`).
 *   `ORANGE_MARCH_WAIT_SECONDS`: Duration (in seconds) to wait if the orange march button is detected (default: `1800`, i.e., 30 minutes).
 *   `DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK`, `DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS`: Set to `True` or `False` to enable/disable debug screenshots. Screenshots are saved in the `rok_bot/debug_screenshots` directory.
-*   `ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST`, `ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND`, and `ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD`: Mouse wheel clicks used for each zoom-out step after sending a march.
+*   `ZOOM_OUT_CLICKS_AFTER_MARCH_FIRST`, `ZOOM_OUT_CLICKS_AFTER_MARCH_SECOND`, `ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD`, and `ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH`: Mouse wheel clicks used for each zoom-out step after sending a march.
 *   `ZOOM_OUT_DELAY_BETWEEN`: Delay in seconds between the zoom-out steps (default: `0.1`).
 
 ### Systematic Search (Snake Pattern) Configuration:
