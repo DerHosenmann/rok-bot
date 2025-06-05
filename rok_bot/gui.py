@@ -9,6 +9,7 @@ DEFAULT_CONFIDENCE = 0.8
 DEFAULT_SCROLL_DURATION = 2.0
 DEFAULT_SCANS_PER_PASS = 5
 DEFAULT_PAUSE_NO_GEM = 0.5
+DEFAULT_ZOOM_CLICKS = 0
 
 bot_process = None
 log_file_position = 0
@@ -27,6 +28,7 @@ def start_bot():
                 '--scroll-duration', str(scroll_duration_var.get()),
                 '--scans-per-pass', str(scans_var.get()),
                 '--pause-no-gem', str(pause_var.get()),
+                '--zoom-out-clicks', str(zoom_var.get()),
             ])
             status_var.set('Bot running')
         except Exception as e:
@@ -84,6 +86,10 @@ ttk.Entry(options, textvariable=scans_var, width=6).grid(row=2, column=1, sticky
 ttk.Label(options, text='Pause if no gem (s):').grid(row=3, column=0, sticky='w')
 pause_var = tk.DoubleVar(value=DEFAULT_PAUSE_NO_GEM)
 ttk.Entry(options, textvariable=pause_var, width=6).grid(row=3, column=1, sticky='w')
+
+ttk.Label(options, text='Zoom out clicks after march:').grid(row=4, column=0, sticky='w')
+zoom_var = tk.IntVar(value=DEFAULT_ZOOM_CLICKS)
+ttk.Entry(options, textvariable=zoom_var, width=6).grid(row=4, column=1, sticky='w')
 
 start_button = ttk.Button(frame, text='Start Bot', command=start_bot)
 start_button.grid(row=0, column=0, padx=5, pady=5)

@@ -85,6 +85,10 @@ SNAKE_SCROLL_SEGMENT_DURATION = 2.0 # Seconds to scroll for each segment of a ho
 # General pause after a scan if no gem is found during systematic search
 SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = 0.5
 
+# Zoom configuration
+# Number of mouse wheel clicks to perform after successfully dispatching a march
+ZOOM_OUT_CLICKS_AFTER_MARCH = 0
+
 # Create screenshot directory
 # Adjusted to be relative to the script's location
 script_dir = os.path.dirname(__file__)
@@ -140,6 +144,12 @@ def parse_args():
         type=float,
         default=SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM,
         help="Pause after a scan if no gem is found",
+    )
+    parser.add_argument(
+        "--zoom-out-clicks",
+        type=int,
+        default=ZOOM_OUT_CLICKS_AFTER_MARCH,
+        help="Mouse wheel clicks to zoom out after dispatching a march",
     )
     return parser.parse_args()
 
@@ -356,6 +366,14 @@ def record_dispatched(location_box):
     DISPATCHED_LOCATIONS.append((center_x, center_y))
 
 
+def zoom_out_after_dispatch():
+    """Zoom out the map slightly after a successful dispatch."""
+    if ZOOM_OUT_CLICKS_AFTER_MARCH > 0:
+        print(f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH} wheel clicks after dispatch...")
+        pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH)
+        time.sleep(0.2)
+
+
 def is_deposit_gathered_on_map(location_box, margin=30):
     """Return True if the provided location appears to be already gathered on the map."""
     left = max(location_box.left - margin, 0)
@@ -491,6 +509,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
             return "orange_march_detected" # Signal to main loop
 
         print(f"--- Successfully dispatched troops to gem deposit on attempt {attempt + 1}! ---")
+        zoom_out_after_dispatch()
         return True
 
     print("All retry attempts for subsequent steps failed for this gem.")
@@ -650,5 +669,6 @@ if __name__ == "__main__":
     SNAKE_SCROLL_SEGMENT_DURATION = args.scroll_duration
     SNAKE_SCANS_PER_HORIZONTAL_PASS = args.scans_per_pass
     SYSTEMATIC_SCAN_PAUSE_IF_NO_GEM = args.pause_no_gem
+    ZOOM_OUT_CLICKS_AFTER_MARCH = args.zoom_out_clicks
 
     main_bot_loop()
