@@ -148,12 +148,13 @@ if (DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK or DEBUG_TAKE_SCREENSHOT_IF_GATHER_F
 
 # --- Helper Functions ---
 def find_template(template_image_path, confidence_level, description="template", use_grayscale=False,
-                  debug_screenshot_on_fail=False, screenshot_filename_prefix="fail_"):
+                  debug_screenshot_on_fail=False, screenshot_filename_prefix="fail_", region=None):
     # Ensure template path is relative to script directory
     full_template_path = os.path.join(script_dir, template_image_path)
     print(f"Searching for '{description}' (file: {full_template_path}) with confidence {confidence_level:.2f}, grayscale: {use_grayscale}...")
     try:
-        location = pyautogui.locateOnScreen(full_template_path, confidence=confidence_level, grayscale=use_grayscale)
+        location = pyautogui.locateOnScreen(full_template_path, confidence=confidence_level,
+                                            grayscale=use_grayscale, region=region)
         if location:
             if (location.left == 0 and location.top == 0 and
                     location.width <= 5 and location.height <= 5):
@@ -301,6 +302,25 @@ def record_dispatched(location_box):
     """Record the center of a successfully dispatched gem deposit."""
     center_x, center_y = pyautogui.center(location_box)
     DISPATCHED_LOCATIONS.append((center_x, center_y))
+
+
+def is_deposit_gathered_on_map(location_box, margin=30):
+    """Return True if the provided location appears to be already gathered on the map."""
+    left = max(location_box.left - margin, 0)
+    top = max(location_box.top - margin, 0)
+    region = (left, top, location_box.width + margin * 2, location_box.height + margin * 2)
+
+    for check_list, desc in [
+        (GATHERING_SELF_TEMPLATES, "Already Gathering (self)"),
+        (GATHERING_ALLY_TEMPLATES, "Gathered by Ally"),
+        (GATHERING_ENEMY_TEMPLATES, "Gathered by Enemy"),
+        (GATHERING_MEMBER_TEMPLATES, "Gathered by Member"),
+    ]:
+        for tmpl in check_list:
+            if find_template(tmpl, CONFIDENCE_GENERAL, desc, use_grayscale=True, region=region):
+                print(f"{desc} detected near deposit on map. Skipping deposit before interaction.")
+                return True
+    return False
 
 
 # --- Main Farming Logic (Called after a gem is SPOTTED) ---
@@ -479,6 +499,10 @@ def main_bot_loop():
                 if initial_gem_location_box:
                     if is_near_dispatched(initial_gem_location_box):
                         print("Gem deposit already dispatched recently. Skipping.")
+                        action_taken_in_current_segment = False
+                        continue
+
+                    if is_deposit_gathered_on_map(initial_gem_location_box):
                         action_taken_in_current_segment = False
                         continue
 
