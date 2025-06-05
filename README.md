@@ -12,6 +12,7 @@ This Python script uses `pyautogui` to automate the process of finding and farmi
 *   Debug options, including taking screenshots on certain events (e.g., after initial click, if gather fails).
 *   Simple GUI to start and stop the bot.
 *   Automatically resizes the game window to **1280x720** when the bot starts.
+*   Can zoom out after sending a march by a configurable number of mouse wheel clicks.
 
 ## Setup
 
@@ -71,6 +72,7 @@ The main configuration variables are located at the top of the `rok_bot/gem_farm
 *   `ORANGE_MARCH_BUTTON_TEMPLATE`: Path to the image for the special orange march button that might indicate a full farming queue (default: `images/orange_march_button.png`).
 *   `ORANGE_MARCH_WAIT_SECONDS`: Duration (in seconds) to wait if the orange march button is detected (default: `1800`, i.e., 30 minutes).
 *   `DEBUG_TAKE_SCREENSHOT_AFTER_FIRST_CLICK`, `DEBUG_TAKE_SCREENSHOT_IF_GATHER_FAILS`: Set to `True` or `False` to enable/disable debug screenshots. Screenshots are saved in the `rok_bot/debug_screenshots` directory.
+*   `ZOOM_OUT_CLICKS_AFTER_MARCH`: Number of mouse wheel clicks used to zoom out after sending a march.
 
 ### Systematic Search (Snake Pattern) Configuration:
 The bot now uses a 'snake' or boustrophedon pattern for map exploration.
