@@ -422,6 +422,7 @@ def perform_full_gem_farming_cycle(initial_gem_location_box):
 
     if not verify_deposit_available():
         print("Deposit not available after verification. Skipping.")
+        zoom_out_after_dispatch()
         return False
 
     for attempt in range(MAX_SUBSEQUENT_STEP_RETRIES):
