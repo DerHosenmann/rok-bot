@@ -97,6 +97,8 @@ ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = 0
 # Number of mouse wheel clicks to zoom in between the fourth and fifth zoom-out steps
 ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = 0
+# Number of mouse wheel clicks to zoom in after the fifth zoom-out step
+ZOOM_IN_CLICKS_AFTER_FIFTH = 0
 # Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
@@ -194,6 +196,12 @@ def parse_args():
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH,
         help="Mouse wheel clicks for the fifth zoom-out after dispatching a march",
+    )
+    parser.add_argument(
+        "--zoom-in-clicks-after-fifth",
+        type=int,
+        default=ZOOM_IN_CLICKS_AFTER_FIFTH,
+        help="Mouse wheel clicks for a final zoom-in after the fifth zoom-out step",
     )
     parser.add_argument(
         "--farming-duration",
@@ -470,7 +478,13 @@ def zoom_out_after_dispatch():
             f"Zooming out {ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH} wheel clicks (step 5) after dispatch..."
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH)
-
+        time.sleep(ZOOM_OUT_DELAY_BETWEEN)
+    if ZOOM_IN_CLICKS_AFTER_FIFTH > 0:
+        print(
+            f"Zooming in {ZOOM_IN_CLICKS_AFTER_FIFTH} wheel clicks after step 5..."
+        )
+        pyautogui.scroll(ZOOM_IN_CLICKS_AFTER_FIFTH)
+        
 
 def perform_quick_gem_farming_cycle(initial_gem_location_box):
     """Farm a gem deposit using a single right-click."""
@@ -802,6 +816,7 @@ if __name__ == "__main__":
     ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = args.zoom_out_clicks_fourth
     ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = args.zoom_out_clicks_fifth
     ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = args.zoom_in_clicks_between_fourth_and_fifth
+    ZOOM_IN_CLICKS_AFTER_FIFTH = args.zoom_in_clicks_after_fifth
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
