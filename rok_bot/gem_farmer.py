@@ -96,9 +96,10 @@ ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = 0
 ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = 0
 # Number of mouse wheel clicks to zoom in between the fourth and fifth zoom-out steps
-ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = 0
-# Number of mouse wheel clicks to zoom in after the fifth zoom-out step
-ZOOM_IN_CLICKS_AFTER_FIFTH = 0
+# This value is fixed and not user-configurable via the CLI or GUI
+ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = 1
+# Duration (in seconds) to hold the down navigation key after completing the zoom-out steps
+DOWN_AFTER_ZOOM_DURATION = 1.0
 # Delay between the zoom actions (seconds)
 ZOOM_OUT_DELAY_BETWEEN = 0.1
 
@@ -183,25 +184,16 @@ def parse_args():
         help="Mouse wheel clicks for the fourth zoom-out after dispatching a march",
     )
     parser.add_argument(
-        "--zoom-in-clicks-between-fourth-and-fifth",
-        type=int,
-        default=ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH,
-        help=(
-            "Mouse wheel clicks for a zoom-in step between the fourth and fifth "
-            "zoom-out after dispatching a march"
-        ),
-    )
-    parser.add_argument(
         "--zoom-out-clicks-fifth",
         type=int,
         default=ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH,
         help="Mouse wheel clicks for the fifth zoom-out after dispatching a march",
     )
     parser.add_argument(
-        "--zoom-in-clicks-after-fifth",
-        type=int,
-        default=ZOOM_IN_CLICKS_AFTER_FIFTH,
-        help="Mouse wheel clicks for a final zoom-in after the fifth zoom-out step",
+        "--down-after-zoom-duration",
+        type=float,
+        default=DOWN_AFTER_ZOOM_DURATION,
+        help="Duration in seconds to press the down key after zooming out",
     )
     parser.add_argument(
         "--farming-duration",
@@ -479,11 +471,14 @@ def zoom_out_after_dispatch():
         )
         pyautogui.scroll(-ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH)
         time.sleep(ZOOM_OUT_DELAY_BETWEEN)
-    if ZOOM_IN_CLICKS_AFTER_FIFTH > 0:
+
+    if DOWN_AFTER_ZOOM_DURATION > 0:
         print(
-            f"Zooming in {ZOOM_IN_CLICKS_AFTER_FIFTH} wheel clicks after step 5..."
+            f"Navigating down for {DOWN_AFTER_ZOOM_DURATION}s after zoom-out..."
         )
-        pyautogui.scroll(ZOOM_IN_CLICKS_AFTER_FIFTH)
+        pyautogui.keyDown(SNAKE_VERTICAL_SCROLL_KEY)
+        time.sleep(DOWN_AFTER_ZOOM_DURATION)
+        pyautogui.keyUp(SNAKE_VERTICAL_SCROLL_KEY)
         
 
 def perform_quick_gem_farming_cycle(initial_gem_location_box):
@@ -815,8 +810,7 @@ if __name__ == "__main__":
     ZOOM_OUT_CLICKS_AFTER_MARCH_THIRD = args.zoom_out_clicks_third
     ZOOM_OUT_CLICKS_AFTER_MARCH_FOURTH = args.zoom_out_clicks_fourth
     ZOOM_OUT_CLICKS_AFTER_MARCH_FIFTH = args.zoom_out_clicks_fifth
-    ZOOM_IN_CLICKS_BETWEEN_FOURTH_AND_FIFTH = args.zoom_in_clicks_between_fourth_and_fifth
-    ZOOM_IN_CLICKS_AFTER_FIFTH = args.zoom_in_clicks_after_fifth
+    DOWN_AFTER_ZOOM_DURATION = args.down_after_zoom_duration
     FARMING_DURATION_SECONDS = args.farming_duration
 
     main_bot_loop()
